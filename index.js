@@ -3,7 +3,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
 var bcrypt = require('bcrypt');
-
+var morgan = require('morgan');
 var User = require('./models/user');
 var Message = require('./models/message');
 
@@ -46,7 +46,15 @@ passport.use(strategy);
 
 app.use(passport.initialize());
 
-var jsonParser = bodyParser.json();
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+// parse application/json
+app.use(bodyParser.json());
+
+app.use(morgan('dev'));
+
+
+//var jsonParser = bodyParser.json();
 
 app.get('/users', function(req, res) {
     User.find({}).then(function(users) {
@@ -54,7 +62,9 @@ app.get('/users', function(req, res) {
     });
 });
 
-app.post('/users', jsonParser, function(req, res) {
+app.post('/users', function(req, res) {
+    console.log(req.body, "unique statement 1");
+
     if (!req.body) {
         return res.status(400).json({
             message: "No request body"
@@ -146,7 +156,7 @@ app.get('/users/:userId', function(req, res) {
     });
 });
 
-app.put('/users/:userId', jsonParser, function(req, res) {
+app.put('/users/:userId', function(req, res) {
     if (!req.body) {
         return res.status(400).json({
             message: "No request body"
@@ -216,7 +226,7 @@ app.get('/messages', function(req, res) {
         });
 });
 
-app.post('/messages', jsonParser, function(req, res) {
+app.post('/messages', function(req, res) {
     if (!req.body) {
         return res.status(400).json({
             message: "No request body"
