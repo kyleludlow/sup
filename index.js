@@ -3,7 +3,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
 var bcrypt = require('bcrypt');
-var morgan = require('morgan');
+//var morgan = require('morgan');
 var User = require('./models/user');
 var Message = require('./models/message');
 
@@ -51,19 +51,30 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
-app.use(morgan('dev'));
+//app.use(morgan('dev'));
 
 
 //var jsonParser = bodyParser.json();
 
-app.get('/users', function(req, res) {
+app.use(passport.initialize());
+
+app.get('/hidden', passport.authenticate('basic', {
+    session: false
+}), function(req, res) {
+    res.json({
+        message: 'Disco deserved a better name...'
+    });
+});
+
+app.get('/users', passport.authenticate('basic', {
+    session: false
+}), function(req, res) {
     User.find({}).then(function(users) {
         res.json(users);
     });
 });
 
 app.post('/users', function(req, res) {
-    console.log(req.body, "unique statement 1");
 
     if (!req.body) {
         return res.status(400).json({
@@ -156,7 +167,9 @@ app.get('/users/:userId', function(req, res) {
     });
 });
 
-app.put('/users/:userId', function(req, res) {
+app.put('/users/:userId', passport.authenticate('basic', {
+    session: false
+}), function(req, res) {
     if (!req.body) {
         return res.status(400).json({
             message: "No request body"
@@ -210,7 +223,9 @@ app.delete('/users/:userId', function(req, res) {
 
 });
 
-app.get('/messages', function(req, res) {
+app.get('/messages', passport.authenticate('basic', {
+    session: false
+}), function(req, res) {
     var filter = {};
     if ('to' in req.query) {
         filter.to = req.query.to;
@@ -324,15 +339,7 @@ app.get('/messages/:messageId', function(req, res) {
         });
 });
 
-app.use(passport.initialize());
 
-app.get('/hidden', passport.authenticate('basic', {
-    session: false
-}), function(req, res) {
-    res.json({
-        message: 'Luke...I am your father'
-    });
-});
 
 
 var databaseUri = global.databaseUri || 'mongodb://localhost/sup';
